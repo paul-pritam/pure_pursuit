@@ -4,6 +4,12 @@ A standalone C++ ROS 2 node implementing the Pure Pursuit path tracking algorith
 
 The node subscribes to a global path, identifies a dynamic lookahead point, calculates the required geometric curvature, and publishes velocity commands to steer the robot along the trajectory.
 
+## Why Build a Custom Pure Pursuit Node?
+
+Modern navigation frameworks like Nav2 provide comprehensive trajectory tracking plugins, but their internal layers can obscure low-level kinematic issues during initial chassis bring-up.
+
+This standalone node was written to isolate and verify differential-drive path tracking from first geometric principles. Having direct, register-to-velocity visibility makes it straightforward to tune lookahead behavior, calibrate wheel encoders, and diagnose why a vehicle oscillates or cuts corners before integrating complex behavior trees.
+
 ## Mathematical Formulation
 
 The controller uses geometric circular arc tracking. Given the robot pose in the odometry frame and the target lookahead waypoint, the algorithm transforms the waypoint into the robot base frame (`base_link`):
@@ -104,6 +110,7 @@ ros2 run pure_pursuit pure_pursuit_node --ros-args \
 - **Under-steering / Corner Cutting**: Reduce `look_ahead_dist` to tighten path tracking around sharp bends.
 - **Oscillation / S-Curves**: Increase `look_ahead_dist` if the robot exhibits high-frequency oscillations along straight corridors.
 - **Heading Stability**: Adjust `max_angular_vel` to cap rotational aggressiveness during large heading deviations.
+- **Transform Overhead**: Transforming global path poses into the local odometry frame in `transform_plan()` prevents frame mismatch failures when switching between map-based and odometry-based navigation.
 
 ## License
 
